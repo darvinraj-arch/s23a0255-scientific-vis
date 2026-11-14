@@ -1,0 +1,49 @@
+state,date,sex,age,ethnicity,population
+Johor,2019-01-01,both,overall,overall,3761.2
+Johor,2022-01-01,both,overall,overall,4028.3
+Johor,2024-01-01,both,overall,overall,4184.4
+Kedah,2019-01-01,both,overall,overall,2173.7
+Kedah,2022-01-01,both,overall,overall,2163.1
+Kedah,2024-01-01,both,overall,overall,2217.1
+Kelantan,2019-01-01,both,overall,overall,1883.8
+Kelantan,2022-01-01,both,overall,overall,1830.6
+Kelantan,2024-01-01,both,overall,overall,1887.9
+Melaka,2019-01-01,both,overall,overall,928.4
+Melaka,2022-01-01,both,overall,overall,1008.6
+Melaka,2024-01-01,both,overall,overall,1046.7
+Negeri Sembilan,2019-01-01,both,overall,overall,1126.2
+Negeri Sembilan,2022-01-01,both,overall,overall,1207.9
+Negeri Sembilan,2024-01-01,both,overall,overall,1239.5
+Pahang,2019-01-01,both,overall,overall,1671.4
+Pahang,2022-01-01,both,overall,overall,1614.3
+Pahang,2024-01-01,both,overall,overall,1667.7
+Perak,2019-01-01,both,overall,overall,2508.8
+Perak,2022-01-01,both,overall,overall,2514.4
+Perak,2024-01-01,both,overall,overall,2569.4
+Perlis,2019-01-01,both,overall,overall,254.0
+Perlis,2022-01-01,both,overall,overall,289.8
+Perlis,2024-01-01,both,overall,overall,296.8
+Pulau Pinang,2019-01-01,both,overall,overall,1768.8
+Pulau Pinang,2022-01-01,both,overall,overall,1740.9
+Pulau Pinang,2024-01-01,both,overall,overall,1800.5
+Sabah,2019-01-01,both,overall,overall,3904.4
+Sabah,2022-01-01,both,overall,overall,3414.9
+Sabah,2024-01-01,both,overall,overall,3742.0
+Sarawak,2019-01-01,both,overall,overall,2806.0
+Sarawak,2022-01-01,both,overall,overall,2473.5
+Sarawak,2024-01-01,both,overall,overall,2517.5
+Selangor,2019-01-01,both,overall,overall,6506.1
+Selangor,2022-01-01,both,overall,overall,7050.3
+Selangor,2024-01-01,both,overall,overall,7362.7
+Terengganu,2019-01-01,both,overall,overall,1244.5
+Terengganu,2022-01-01,both,overall,overall,1186.6
+Terengganu,2024-01-01,both,overall,overall,1231.5
+W.P. Kuala Lumpur,2019-01-01,both,overall,overall,1782.5
+W.P. Kuala Lumpur,2022-01-01,both,overall,overall,1961.2
+W.P. Kuala Lumpur,2024-01-01,both,overall,overall,2067.5
+W.P. Labuan,2019-01-01,both,overall,overall,99.3
+W.P. Labuan,2022-01-01,both,overall,overall,96.9
+W.P. Labuan,2024-01-01,both,overall,overall,100.8
+W.P. Putrajaya,2019-01-01,both,overall,overall,103.7
+W.P. Putrajaya,2022-01-01,both,overall,overall,117.0
+W.P. Putrajaya,2024-01-01,both,overall,overall,120.3
