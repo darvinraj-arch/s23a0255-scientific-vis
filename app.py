@@ -104,8 +104,8 @@ if page == "Page 1: Income Inequality & Distribution":
 
     # 1. Objective Statement
     st.info(
-        "**Objective Statement:** To examine within-state household income dispersion and skewness "
-        "across Malaysian parliamentary constituencies, highlighting the gap between mean and median earnings."
+        "**Objective Statement:** To examine household income distribution and skewness across Malaysian "
+        "parliamentary constituencies, highlighting the gap between mean and median earnings."
     )
 
     df_y = df_econ[df_econ["year"] == selected_year]
@@ -130,28 +130,43 @@ if page == "Page 1: Income Inequality & Distribution":
     st.markdown("---")
 
     # 3. Three Visualizations
-    # Viz 1: Box Plot with All Constituency Points
-    st.subheader("Visualization 1: Constituency Income Dispersion by State (Box & Jitter Plot)")
-    state_order = df_y.groupby("state")["income_median"].median().sort_values(ascending=False).index
-    fig1 = px.box(
+    # Viz 1: Histogram of Constituency Income Distribution
+    st.subheader("Visualization 1: Distribution of Constituency Mean Income (Histogram)")
+    fig1 = px.histogram(
         df_y,
-        x="state",
-        y="income_mean",
+        x="income_mean",
         color="region",
-        points="all",
-        hover_name="parlimen",
-        category_orders={"state": state_order},
-        labels={"income_mean": "Mean Monthly Income (RM)", "state": "State / Territory", "region": "Region"},
+        nbins=25,
+        barmode="stack",
+        labels={"income_mean": "Mean Monthly Household Income (RM)", "region": "Region"},
         color_discrete_sequence=px.colors.qualitative.Set2
     )
-    fig1.update_layout(xaxis_tickangle=-45, height=460)
+    fig1.add_vline(
+        x=avg_med,
+        line_dash="dash",
+        line_color="#1f77b4",
+        annotation_text=f"Median: RM {avg_med:,.0f}",
+        annotation_position="top left"
+    )
+    fig1.add_vline(
+        x=avg_mean,
+        line_dash="solid",
+        line_color="#ff7f0e",
+        annotation_text=f"Mean: RM {avg_mean:,.0f}",
+        annotation_position="top right"
+    )
+    fig1.update_layout(
+        yaxis_title="Number of Constituencies",
+        height=430,
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+    )
     st.plotly_chart(fig1, use_container_width=True)
 
     c1, c2 = st.columns(2)
 
     # Viz 2: Dumbbell Plot (Mean vs Median Income by State)
     with c1:
-        st.subheader("Visualization 2: Mean vs. Median Income Gap (Dumbbell Chart)")
+        st.subheader("Visualization 2: Mean vs. Median Income Gap by State (Dumbbell Chart)")
         state_summary = (
             df_y.groupby("state")[["income_mean", "income_median"]]
             .mean()
@@ -184,33 +199,45 @@ if page == "Page 1: Income Inequality & Distribution":
         fig2.update_layout(
             xaxis_title="Monthly Household Income (RM)",
             yaxis_title="",
-            height=480,
+            height=500,
             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
         )
         st.plotly_chart(fig2, use_container_width=True)
 
-    # Viz 3: Hierarchical Treemap of Constituency Income
+    # Viz 3: Top 10 Highest vs Bottom 10 Lowest Income Constituencies (Horizontal Bar)
     with c2:
-        st.subheader("Visualization 3: Hierarchical Income Share (Region → State → Constituency)")
-        fig3 = px.treemap(
-            df_y,
-            path=[px.Constant("Malaysia"), "region", "state", "parlimen"],
-            values="income_mean",
-            color="income_median",
-            color_continuous_scale="Viridis",
-            labels={"income_mean": "Mean Income (RM)", "income_median": "Median Income (RM)"}
+        st.subheader("Visualization 3: Top 10 Highest vs. Bottom 10 Lowest Income Constituencies")
+        top10_inc = df_y.nlargest(10, "income_mean").assign(Tier="Top 10 Highest Income")
+        bot10_inc = df_y.nsmallest(10, "income_mean").assign(Tier="Bottom 10 Lowest Income")
+        inc_extremes = pd.concat([bot10_inc, top10_inc]).sort_values("income_mean", ascending=True)
+
+        fig3 = px.bar(
+            inc_extremes,
+            x="income_mean",
+            y="parlimen",
+            color="Tier",
+            orientation="h",
+            hover_data=["state", "income_median"],
+            labels={"income_mean": "Mean Monthly Income (RM)", "parlimen": "Constituency"},
+            color_discrete_map={
+                "Top 10 Highest Income": "#2ca02c",
+                "Bottom 10 Lowest Income": "#d62728"
+            }
         )
-        fig3.update_layout(height=480)
+        fig3.update_layout(
+            height=500,
+            yaxis_title="",
+            legend=dict(orientation="h", yanchor="bottom", y=1.02)
+        )
         st.plotly_chart(fig3, use_container_width=True)
 
     # 4. Interpretation / Discussion
     st.subheader("Interpretation & Scientific Discussion")
     st.markdown(
-        "- **Intra-State Dispersion (Box Plot):** Urbanized states such as W.P. Kuala Lumpur and Selangor exhibit wide interquartile ranges and upper outliers, indicating substantial local income inequality compared to more uniform distributions in rural states.\n"
-        "- **Right-Skewness (Dumbbell Chart):** Across every state, mean income exceeds median income, confirming a positively skewed distribution pulled upward by top-decile earners.\n"
-        "- **Spatial Hierarchy (Treemap):** Visualizing constituencies nested within states highlights how high-earning constituencies cluster along Peninsular west-coast economic corridors."
+        "- **Right-Skewed Income Distribution (Histogram):** The majority of Malaysian constituencies cluster between RM 4,500 and RM 7,500, while a long right tail of affluent urban constituencies pulls the national mean noticeably above the median.\n"
+        "- **State-Level Skewness (Dumbbell Chart):** Across every state, mean income exceeds median income, with the widest internal gaps occurring in major economic hubs such as W.P. Kuala Lumpur and Selangor.\n"
+        "- **Regional Disparity (Top vs. Bottom Constituencies):** High-income constituencies are heavily concentrated in Klang Valley and urban centers, whereas the lowest-income constituencies are predominantly rural areas in Sarawak, Sabah, and Kelantan."
     )
-
 # =========================================================
 # PAGE 2: HOUSEHOLD EXPENDITURE & SAVINGS CAPACITY
 # =========================================================
