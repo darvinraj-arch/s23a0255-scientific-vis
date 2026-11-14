@@ -157,7 +157,7 @@ if page == "Page 1: Income Inequality & Distribution":
     )
     fig1.update_layout(
         yaxis_title="Number of Constituencies",
-        height=430,
+        height=420,
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
     )
     st.plotly_chart(fig1, use_container_width=True)
@@ -166,7 +166,7 @@ if page == "Page 1: Income Inequality & Distribution":
 
     # Viz 2: Dumbbell Plot (Mean vs Median Income by State)
     with c1:
-        st.subheader("Visualization 2: Mean vs. Median Income Gap by State (Dumbbell Chart)")
+        st.subheader("Visualization 2: Mean vs. Median Income Gap (Dumbbell Chart)")
         state_summary = (
             df_y.groupby("state")[["income_mean", "income_median"]]
             .mean()
@@ -199,35 +199,40 @@ if page == "Page 1: Income Inequality & Distribution":
         fig2.update_layout(
             xaxis_title="Monthly Household Income (RM)",
             yaxis_title="",
-            height=500,
+            height=520,
             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
         )
         st.plotly_chart(fig2, use_container_width=True)
 
-    # Viz 3: Top 10 Highest vs Bottom 10 Lowest Income Constituencies (Horizontal Bar)
+    # Viz 3: 3D Surface Plot (State x Survey Year x Mean Income)
     with c2:
-        st.subheader("Visualization 3: Top 10 Highest vs. Bottom 10 Lowest Income Constituencies")
-        top10_inc = df_y.nlargest(10, "income_mean").assign(Tier="Top 10 Highest Income")
-        bot10_inc = df_y.nsmallest(10, "income_mean").assign(Tier="Bottom 10 Lowest Income")
-        inc_extremes = pd.concat([bot10_inc, top10_inc]).sort_values("income_mean", ascending=True)
-
-        fig3 = px.bar(
-            inc_extremes,
-            x="income_mean",
-            y="parlimen",
-            color="Tier",
-            orientation="h",
-            hover_data=["state", "income_median"],
-            labels={"income_mean": "Mean Monthly Income (RM)", "parlimen": "Constituency"},
-            color_discrete_map={
-                "Top 10 Highest Income": "#2ca02c",
-                "Bottom 10 Lowest Income": "#d62728"
-            }
+        st.subheader("Visualization 3: Multi-Year State Income Trajectory (3D Surface Plot)")
+        state_order = (
+            df_econ[df_econ["year"] == max(years)]
+            .groupby("state")["income_mean"]
+            .mean()
+            .sort_values()
+            .index.tolist()
         )
+        piv_surf = (
+            df_econ.pivot_table(index="state", columns="year", values="income_mean", aggfunc="mean")
+            .loc[state_order]
+        )
+        fig3 = go.Figure(data=[go.Surface(
+            z=piv_surf.values,
+            x=[str(y) for y in piv_surf.columns],
+            y=piv_surf.index.tolist(),
+            colorscale="Viridis",
+            colorbar=dict(title="Mean Income (RM)")
+        )])
         fig3.update_layout(
-            height=500,
-            yaxis_title="",
-            legend=dict(orientation="h", yanchor="bottom", y=1.02)
+            scene=dict(
+                xaxis_title="Survey Year",
+                yaxis_title="State (Sorted)",
+                zaxis_title="Mean Income (RM)"
+            ),
+            margin=dict(l=0, r=0, b=0, t=30),
+            height=520
         )
         st.plotly_chart(fig3, use_container_width=True)
 
@@ -236,8 +241,9 @@ if page == "Page 1: Income Inequality & Distribution":
     st.markdown(
         "- **Right-Skewed Income Distribution (Histogram):** The majority of Malaysian constituencies cluster between RM 4,500 and RM 7,500, while a long right tail of affluent urban constituencies pulls the national mean noticeably above the median.\n"
         "- **State-Level Skewness (Dumbbell Chart):** Across every state, mean income exceeds median income, with the widest internal gaps occurring in major economic hubs such as W.P. Kuala Lumpur and Selangor.\n"
-        "- **Regional Disparity (Top vs. Bottom Constituencies):** High-income constituencies are heavily concentrated in Klang Valley and urban centers, whereas the lowest-income constituencies are predominantly rural areas in Sarawak, Sabah, and Kelantan."
+        "- **Temporal & Spatial Income Surface (3D Surface Plot):** Tracing the 3D surface across 2019, 2022, and 2024 illustrates a steady upward shift in household income nationwide, alongside a steep elevation ridge separating Federal Territories from lower-income states."
     )
+
 # =========================================================
 # PAGE 2: HOUSEHOLD EXPENDITURE & SAVINGS CAPACITY
 # =========================================================
@@ -272,34 +278,22 @@ elif page == "Page 2: Household Expenditure & Savings Capacity":
     st.markdown("---")
 
     # 3. Three Visualizations
-    # Viz 1: Stacked Bar Chart (Expenditure + Net Surplus = Total Income)
-    st.subheader("Visualization 1: Income Allocation — Expenditure vs. Net Surplus by State")
-    state_budget = (
-        df_y.groupby("state")[["expenditure", "surplus_mean", "income_mean"]]
-        .mean()
-        .reset_index()
-        .sort_values("income_mean", ascending=False)
+    # Viz 1: Annotated Heatmap of Expenditure-to-Income Ratio (%) across States & Years
+    st.subheader("Visualization 1: Expenditure-to-Income Burden (%) Across States & Years (Heatmap)")
+    piv_heat = (
+        df_econ.pivot_table(index="state", columns="year", values="spending_ratio", aggfunc="mean")
+        .sort_values(by=max(years), ascending=False)
     )
-    fig1 = go.Figure()
-    fig1.add_trace(go.Bar(
-        x=state_budget["state"],
-        y=state_budget["expenditure"],
-        name="Mean Expenditure (RM)",
-        marker_color="#EF553B"
-    ))
-    fig1.add_trace(go.Bar(
-        x=state_budget["state"],
-        y=state_budget["surplus_mean"],
-        name="Net Household Surplus (RM)",
-        marker_color="#00CC96"
-    ))
-    fig1.update_layout(
-        barmode="stack",
-        xaxis_tickangle=-45,
-        yaxis_title="Monthly Amount (RM)",
-        height=450,
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+    piv_heat.columns = [str(c) for c in piv_heat.columns]
+
+    fig1 = px.imshow(
+        piv_heat,
+        text_auto=".1f",
+        aspect="auto",
+        color_continuous_scale="YlOrRd",
+        labels=dict(x="Survey Year", y="State / Territory", color="Spend Ratio (%)")
     )
+    fig1.update_layout(height=480)
     st.plotly_chart(fig1, use_container_width=True)
 
     c1, c2 = st.columns(2)
@@ -354,7 +348,7 @@ elif page == "Page 2: Household Expenditure & Savings Capacity":
     # 4. Interpretation / Discussion
     st.subheader("Interpretation & Scientific Discussion")
     st.markdown(
-        "- **Budget Decomposition (Stacked Bar):** While high-income states spend more in absolute Ringgit terms, they retain a significantly larger absolute savings buffer than lower-income states.\n"
+        "- **Rising Cost-of-Living Heatmap (Heatmap):** Darker cells in 2022 and 2024 demonstrate a nationwide increase in expenditure-to-income ratios compared to 2019, with states like Kelantan, Negeri Sembilan, and Melaka dedicating over 71% of mean household income to consumption.\n"
         "- **Constituency Extremes (Horizontal Bar):** Top-surplus urban constituencies retain over RM 8,000/month after expenditure, whereas bottom-surplus rural constituencies operate with less than RM 1,000/month in residual income.\n"
         "- **Engel's Law Pattern (Scatter Plot):** A negative correlation between mean income and spending ratio confirms that lower-income constituencies dedicate a substantially larger share of earnings to basic consumption, leaving a thinner margin for savings."
     )
